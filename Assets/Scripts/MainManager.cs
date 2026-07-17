@@ -13,6 +13,8 @@ public class MainManager : MonoBehaviour
 
     public Text ScoreText;
     public GameObject GameOverText;
+// [추가 1] 최고 점수를 표시할 UI 텍스트 변수 추가
+    public Text BestScoreText;
 
     private bool m_Started = false;
     private int m_Points;
@@ -43,6 +45,16 @@ public class MainManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+
+        // [추가 2] 게임 시작 시 현재 플레이어 이름과 최고 점수를 UI에 세팅
+        if (DataManager.Instance != null)
+        {
+            // 현재 플레이어 이름 표시 (선택 사항: ScoreText 옆에 띄우기)
+            ScoreText.text = $"{DataManager.Instance.currentPlayerName} Score : {m_Points}";
+            
+            // 최고 점수 표시
+            BestScoreText.text = $"Best Score : {DataManager.Instance.highScorePlayerName} : {DataManager.Instance.highScore}";
+        }
         const float step = 0.6f;
         int perLine = Mathf.FloorToInt(4.0f / step);
 
@@ -93,5 +105,27 @@ public class MainManager : MonoBehaviour
     {
         m_GameOver = true;
         GameOverText.SetActive(true);
+
+// [추가 3] 게임 오버 시 최고 점수인지 확인하고 저장 (세션 간 영속성)
+        if (DataManager.Instance != null && m_Points > DataManager.Instance.highScore)
+        {
+            DataManager.Instance.highScore = m_Points;
+            DataManager.Instance.highScorePlayerName = DataManager.Instance.currentPlayerName;
+            
+            // 파일에 기록
+            DataManager.Instance.SaveHighScore(); 
+            
+            // 화면 텍스트 즉시 업데이트
+            BestScoreText.text = $"Best Score : {DataManager.Instance.highScorePlayerName} : {DataManager.Instance.highScore}";
+        }
+
+    }
+
+    // 메뉴로 돌아가는 버튼용 함수
+    public void BackToMenu()
+    {
+        // 씬 매니저를 통해 메뉴 씬을 로드합니다. 
+        // (Build Settings에서 메뉴 씬의 이름을 "Menu"로 했거나 인덱스가 0일 때 작동합니다)
+        SceneManager.LoadScene("Menu"); // 메뉴 씬 이름이 다르다면 그 이름으로 바꿔주세요.
     }
 }
